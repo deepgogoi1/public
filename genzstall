@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>GENZ Stall – Orders</title>
+<style>
+:root{--bg:#1f2227;--card:#2b2f36;--tx:#f4f1ea;--mut:#a9a49a;--gold:#d4af6a;--ok:#4caf7d;--bad:#e5645a;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:light){:root:not([data-theme="dark"]){--bg:#f6f2e9;--card:#fff;--tx:#1d1d1d;--mut:#6f6a5f;--gold:#a67c1f}}
+:root[data-theme="dark"]{--bg:#1f2227;--card:#2b2f36;--tx:#f4f1ea;--mut:#a9a49a;--gold:#d4af6a}
+*{box-sizing:border-box}html,body{margin:0}body{background:var(--bg);color:var(--tx);font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;padding-bottom:110px}
+header{display:flex;justify-content:space-between;align-items:center;padding:14px 16px;border-bottom:1px solid var(--gold)}
+h1{margin:0;font-size:20px;letter-spacing:1px}h1 span{color:var(--gold)}
+.sm{font-size:12px;color:var(--mut)}
+nav{display:flex;gap:6px;padding:10px 12px}nav button{flex:1;padding:10px 4px;border-radius:10px;border:1px solid var(--gold);background:none;color:var(--tx);font-size:14px}
+nav button.on{background:var(--gold);color:#1b1b1b;font-weight:700}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:0 12px}
+@media(min-width:700px){.grid{grid-template-columns:repeat(4,1fr)}}
+.item{position:relative;background:var(--card);border:1px solid var(--gold);border-radius:14px;padding:14px 8px;text-align:center;user-select:none;cursor:pointer;min-height:96px;display:flex;flex-direction:column;justify-content:center;gap:4px}
+.item:active{transform:scale(.97)}.item b{font-size:15px}.item .p{color:var(--gold);font-size:18px;font-weight:700}
+.badge{position:absolute;top:-8px;right:-6px;background:var(--ok);color:#fff;border-radius:99px;min-width:26px;height:26px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px}
+.bar{position:fixed;left:0;right:0;bottom:0;background:var(--card);border-top:2px solid var(--gold);padding:10px 14px calc(10px + env(safe-area-inset-bottom,0px));display:flex;gap:10px;align-items:center;z-index:5}
+.bar .t{flex:1}.bar .t b{font-size:22px;color:var(--gold)}
+.btn{border:0;border-radius:12px;padding:13px 18px;font-size:16px;font-weight:700}
+.done{background:var(--ok);color:#fff}.clr{background:none;border:1px solid var(--mut);color:var(--tx)}.btn:disabled{opacity:.4}
+.box{background:var(--card);border-radius:14px;padding:14px;margin:0 12px 10px}
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:0 12px 10px}
+.stat{background:var(--card);border:1px solid var(--gold);border-radius:14px;padding:14px}.stat b{display:block;font-size:26px;color:var(--gold)}
+.row{display:flex;justify-content:space-between;gap:8px;padding:6px 0;border-bottom:1px solid #8883}
+.ord .x{background:none;border:0;color:var(--bad);font-size:13px}
+input{font:inherit}
+.login{max-width:380px;margin:18vh auto;padding:0 20px;text-align:center}
+.login input{width:100%;padding:14px;border-radius:12px;border:1px solid var(--gold);background:var(--card);color:var(--tx);font-size:16px;margin:14px 0}
+.arow{display:flex;gap:6px;align-items:center;margin-bottom:8px;flex-wrap:wrap}
+.arow input{padding:10px;border-radius:10px;border:1px solid var(--gold);background:var(--bg);color:var(--tx);min-width:0}
+.arow .nm{flex:1 1 150px}.arow .pr{width:80px}
+.arow button{padding:9px 12px;border-radius:10px;border:0;font-weight:700}
+.sv{background:var(--ok);color:#fff}.dl{background:var(--bad);color:#fff}
+.foot{text-align:center;padding:22px 12px 8px;color:var(--mut);font-size:13px}.foot b{color:var(--gold)}
+.tag{font-size:12px;color:var(--gold)}
+.modal{position:fixed;inset:0;z-index:50;background:#000a;display:flex;align-items:center;justify-content:center;padding:14px}
+.hide{display:none}
+/* splash */
+#splash{position:fixed;inset:0;z-index:99;background:#14161a;color:#f4f1ea;display:flex;flex-direction:column;align-items:center;justify-content:center;transition:opacity .6s}
+#splash.out{opacity:0;pointer-events:none}
+#splash .lg{font-size:44px;font-weight:800;letter-spacing:3px;animation:pop .8s cubic-bezier(.2,1.4,.4,1) both}
+#splash .lg span{color:#d4af6a}
+#splash .mb{margin-top:26px;font-size:14px;letter-spacing:4px;color:#a9a49a;text-transform:uppercase;animation:fade .8s .7s both}
+#splash .nm{margin-top:6px;font-size:30px;font-weight:700;color:#d4af6a;display:flex;gap:2px}
+#splash .nm i{font-style:normal;display:inline-block;opacity:0;animation:rise .5s both}
+#splash .ln{height:2px;width:0;background:#d4af6a;margin-top:18px;animation:grow 1s 1.2s forwards}
+@keyframes pop{from{transform:scale(.3);opacity:0}to{transform:scale(1);opacity:1}}
+@keyframes fade{from{opacity:0}to{opacity:1}}
+@keyframes rise{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:none}}
+@keyframes grow{to{width:160px}}
+</style></head><body>
+
+<div id="splash"><div class="lg">GEN Z <span>STALL</span></div><div class="mb">Made by</div><div class="nm" id="spn"></div><div class="ln"></div></div>
+
+<div id="login" class="login hide">
+  <h1 style="font-size:30px">GEN Z <span>STALL</span></h1>
+  <p class="sm">Staff login (only needed once on this phone)</p>
+  <input id="em" type="email" placeholder="Enter your email" autocomplete="email">
+  <button class="btn done" style="width:100%" onclick="doLogin()">Continue</button>
+  <p id="lerr" class="sm" style="color:var(--bad)"></p>
+  <p class="foot">Developer <b>Deep Gogoi</b></p>
+</div>
+
+<div id="app" class="hide">
+  <header><h1>GEN Z <span>STALL</span></h1><div class="sm" style="text-align:right"><span id="who"></span><br><span id="sync"></span> · <a href="#" onclick="logout();return false" style="color:var(--gold)">Logout</a></div></header>
+  <nav><button id="n1" class="on" onclick="tab(1)">🍟 Order</button><button id="n2" onclick="tab(2)">📊 Earnings</button><button id="n3" onclick="tab(3)">🧾 History</button><button id="n4" class="hide" onclick="tab(4)">⚙ Admin<span id="nb"></span></button></nav>
+
+  <section id="s1"><div class="grid" id="menu"></div>
+    <div class="bar"><div class="t"><div class="sm" id="cn">Tap items to add</div><b id="ct">₹0</b></div>
+      <button class="btn clr" id="bc" onclick="clearCart()" disabled>Clear</button>
+      <button class="btn done" id="bd" onclick="done()" disabled>✔ Served</button></div></section>
+
+  <section id="s2" class="hide">
+    <div class="stats"><div class="stat"><span class="sm">Total earnings</span><b id="e1">₹0</b></div><div class="stat"><span class="sm">Orders served</span><b id="e2">0</b></div></div>
+    <div class="box"><b>Items sold</b><div id="sold"></div></div>
+    <div class="box"><b>Earnings by day</b><div id="days"></div></div>
+    <div class="box"><button class="btn clr" onclick="exportCsv()">⬇ Download history (CSV)</button></div>
+  </section>
+
+  <section id="s3" class="hide"><div id="hist"></div></section>
+
+  <section id="s4" class="hide"><div class="box"><b>Staff requests (edit &amp; delete)</b><div id="req" style="margin-top:6px"></div></div><div class="box"><b>Manage products &amp; prices</b><p class="sm">Changes apply to new orders. Past orders keep the price they were sold at.</p><div id="adm"></div>
+    <hr style="border:0;border-top:1px solid #8883"><b>Add new product</b>
+    <div class="arow" style="margin-top:8px"><input class="nm" id="an" placeholder="Product name"><input class="pr" id="ap" type="number" min="0" placeholder="₹ Price"><button class="sv" onclick="adminAdd()">+ Add</button></div></div></section>
+
+  <div class="foot">Developer <b>Deep Gogoi</b></div>
+</div>
+
+<div id="ed" class="modal hide"><div class="box" style="max-width:420px;width:100%;margin:0;max-height:90vh;overflow:auto"><b>Edit order</b><div id="edb" style="margin-top:10px"></div><div class="arow" style="margin-top:12px"><button class="sv" id="edsv" onclick="edSave()">Save changes</button><button class="clr btn" style="padding:9px 12px;font-size:14px" onclick="edClose()">Cancel</button></div></div></div>
+<script>
+const ADMIN="deepgogoi217@gmail.com";
+const DEFAULTS=[
+ {id:"cp",n:"Chicken Pakora (8 pcs)",p:100},{id:"ff",n:"French Fries",p:80},
+ {id:"vm",n:"Veg Maggie",p:30},{id:"chm",n:"Chicken Maggie",p:50},
+ {id:"cm",n:"Cheese Maggie",p:60},{id:"gh",n:"Ghugni",p:20},
+ {id:"cb",n:"Combo Special (Chicken + Cheese Maggie)",p:90},{id:"gc",n:"Grilled Chicken (8 pcs)",p:120}];
+let MENU=DEFAULTS.map(x=>({...x})),M={},cart={},orders=[],email=null,db=null,menuDbIds=[];
+const $=id=>document.getElementById(id), rs=n=>"₹"+Number(n).toLocaleString("en-IN");
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const ls={get(k){try{return localStorage.getItem(k)}catch(e){return null}},set(k,v){try{localStorage.setItem(k,v)}catch(e){}}};
+const isAdmin=()=>email===ADMIN;
+
+/* splash */
+"Deep Gogoi".split("").forEach((c,i)=>{const s=document.createElement("i");s.textContent=c===" "?"\u00a0":c;s.style.animationDelay=(1+i*.08)+"s";$("spn").appendChild(s)});
+setTimeout(()=>{$("splash").classList.add("out");setTimeout(()=>$("splash").remove(),700)},3200);
+
+function rebuildM(){M=Object.fromEntries(MENU.map(x=>[x.id,x]));Object.keys(cart).forEach(k=>{if(!M[k])delete cart[k]})}
+function doLogin(){const v=$("em").value.trim().toLowerCase();
+  if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(v)){$("lerr").textContent="Please enter a valid email";return}
+  ls.set("genz_email",v);email=v;start()}
+function logout(){ls.set("genz_email","");location.reload()}
+function tab(n){[1,2,3,4].forEach(i=>{$("s"+i).classList.toggle("hide",i!=n);$("n"+i).classList.toggle("on",i==n)});render()}
+
+function renderMenu(){$("menu").innerHTML=MENU.map(m=>`<div class="item" onclick="add('${m.id}')" oncontextmenu="return false">${cart[m.id]?`<span class="badge">${cart[m.id]}</span>`:""}<b>${esc(m.n)}</b><span class="p">${rs(m.p)}</span>${cart[m.id]?`<button class="btn clr" style="padding:4px;font-size:13px" onclick="event.stopPropagation();sub('${m.id}')">− remove one</button>`:""}</div>`).join("")}
+function add(id){cart[id]=(cart[id]||0)+1;cartUI()}
+function sub(id){if(--cart[id]<=0)delete cart[id];cartUI()}
+function clearCart(){cart={};cartUI()}
+const total=c=>Object.entries(c).reduce((s,[k,q])=>s+M[k].p*q,0);
+function cartUI(){const n=Object.values(cart).reduce((a,b)=>a+b,0);
+  $("ct").textContent=rs(total(cart));$("cn").textContent=n?n+" item"+(n>1?"s":""):"Tap items to add";
+  $("bd").disabled=$("bc").disabled=!n;renderMenu()}
+
+async function done(){
+  const items={};Object.entries(cart).forEach(([k,q])=>items[k]={n:M[k].n,p:M[k].p,q});
+  const o={items,total:total(cart),by:email,ts:Date.now()};
+  const id="o"+o.ts+Math.random().toString(36).slice(2,6);
+  clearCart();
+  if(db){try{await db.collection("orders").doc(id).set(o);return}catch(e){$("sync").textContent="⚠ saved on this phone only"}}
+  orders.push({id,...o});saveLocal();render()}
+async function upd(id,patch,remove){
+  const cur=orders.find(o=>o.id===id);if(!cur)return;
+  const {id:_i,...base}=cur;const doc={...base,...(patch||{})};if(doc.delReq===null)delete doc.delReq;if(doc.editReq===null)delete doc.editReq;
+  if(db){try{const r=db.collection("orders").doc(id);if(remove)await r.delete();else await r.set(doc);return}catch(e){alert("Could not save. Check your connection or sign-in.");return}}
+  orders=remove?orders.filter(o=>o.id!==id):orders.map(o=>o.id===id?{id,...doc}:o);saveLocal();render()}
+function del(id){if(isAdmin()&&confirm("Delete this order permanently?"))upd(id,0,true)}
+function reqDel(id){if(confirm("Send a delete request to the admin?"))upd(id,{delReq:{by:email,ts:Date.now()}})}
+function rejectDel(id){upd(id,{delReq:null})}
+function rejectEdit(id){upd(id,{editReq:null})}
+function approveEdit(id){const o=orders.find(x=>x.id===id);if(!o||!o.editReq)return;upd(id,{items:o.editReq.items,total:o.editReq.total,editReq:null,edited:{by:o.editReq.by,ts:Date.now(),approved:true}})}
+function reqInfo(o){if(o.delReq)return '<span class="sm">🗑 Delete requested by '+esc(o.delReq.by)+'</span>';
+  return '<span class="sm">✎ Edit requested by '+esc(o.editReq.by)+'<br>New: '+its({items:o.editReq.items}).map(x=>x.q+'× '+esc(x.n)).join(', ')+' = <b>'+rs(o.editReq.total)+'</b> (was '+rs(o.total)+')</span>'}
+function reqBtns(o){if(o.delReq)return `<span class="arow" style="margin:0"><button class="dl" onclick="upd('${o.id}',0,true)">Approve &amp; delete</button><button class="sv" onclick="rejectDel('${o.id}')">Reject</button></span>`;
+  return `<span class="arow" style="margin:0"><button class="sv" onclick="approveEdit('${o.id}')">Approve edit</button><button class="dl" onclick="rejectEdit('${o.id}')">Reject</button></span>`}
+function actions(o){
+  if(isAdmin())return `<span>${o.delReq?'<span class="tag">⏳ delete requested by '+esc(o.delReq.by)+'</span> ':''}${o.editReq?'<span class="tag">⏳ edit requested by '+esc(o.editReq.by)+'</span> ':''}<button class="x" style="color:var(--gold)" onclick="editOrder('${o.id}')">Edit</button> <button class="x" onclick="del('${o.id}')">Delete</button></span>`;
+  if(o.delReq)return '<span class="tag">⏳ Delete requested, waiting for admin</span>';
+  if(o.editReq)return '<span class="tag">⏳ Edit requested, waiting for admin</span>';
+  return `<span><button class="x" style="color:var(--gold)" onclick="editOrder('${o.id}')">Request edit</button> <button class="x" onclick="reqDel('${o.id}')">Request delete</button></span>`}
+let ed=null;
+function editOrder(id){const o=orders.find(x=>x.id===id);if(!o)return;ed={id,items:its(o).map(x=>({k:x.k||x.n,...x}))};$("edsv").textContent=isAdmin()?"Save changes":"Send edit request";drawEd();$("ed").classList.remove("hide")}
+function drawEd(){$("edb").innerHTML=ed.items.map((x,i)=>`<div class="arow"><span style="flex:1">${esc(x.n)} <span class="sm">${rs(x.p)} each</span></span><input class="pr" type="number" min="0" value="${x.q}" oninput="ed.items[${i}].q=Math.max(0,parseInt(this.value)||0);edTot()"></div>`).join("")+`<div class="arow"><select id="eadd" class="nm" style="padding:10px;border-radius:10px;background:var(--bg);color:var(--tx);border:1px solid var(--gold)">${MENU.map(m=>`<option value="${m.id}">${esc(m.n)} – ${rs(m.p)}</option>`).join("")}</select><button class="sv" onclick="edAdd()">+ Add</button></div><div class="row"><b>New total</b><b id="edt" style="color:var(--gold)"></b></div><p class="sm">Set a quantity to 0 to remove that item.</p>`;edTot()}
+function edTot(){$("edt").textContent=rs(ed.items.reduce((s,x)=>s+x.p*x.q,0))}
+function edAdd(){const m=M[$("eadd").value];if(!m)return;const e=ed.items.find(x=>x.k===m.id&&x.p===m.p);if(e)e.q++;else ed.items.push({k:m.id,n:m.n,p:m.p,q:1});drawEd()}
+async function edSave(){const l=ed.items.filter(x=>x.q>0);if(!l.length){alert("Order is empty. Use Delete instead.");return}
+  const items={};l.forEach((x,i)=>items["i"+i]={n:x.n,p:x.p,q:x.q});
+  const total=l.reduce((s,x)=>s+x.p*x.q,0);
+  if(isAdmin())await upd(ed.id,{items,total,edited:{by:email,ts:Date.now()}});
+  else{await upd(ed.id,{editReq:{by:email,ts:Date.now(),items,total}});alert("Edit request sent to the admin for approval.")}
+  edClose()}
+function edClose(){ed=null;$("ed").classList.add("hide")}
+function saveLocal(){ls.set("genz_orders",JSON.stringify(orders))}
+
+/* admin: products */
+async function saveMenu(list){
+  if(db){try{const old=new Set(menuDbIds);
+      for(let i=0;i<list.length;i++){await db.collection("menu").doc(list[i].id).set({n:list[i].n,p:list[i].p,o:i});old.delete(list[i].id)}
+      for(const id of old)await db.collection("menu").doc(id).delete();
+      return true}catch(e){alert("Could not save to the shared menu. Open the app signed in to the owner's Claude account to edit shared products.");return false}}
+  MENU=list;rebuildM();ls.set("genz_menu",JSON.stringify(MENU));cartUI();render();return true}
+function renderAdmin(){if(!isAdmin())return;
+  const rq=orders.filter(o=>o.delReq||o.editReq);$("nb").textContent=rq.length?" ("+rq.length+")":"";
+  $("req").innerHTML=rq.map(o=>`<div class="row" style="flex-wrap:wrap"><span>${fmtT(o.ts)} · <b>${rs(o.total)}</b> · ${its(o).map(x=>x.q+"× "+esc(x.n)).join(", ")}<br>${reqInfo(o)}</span>${reqBtns(o)}</div>`).join("")||'<p class="sm">No pending requests.</p>';
+  $("adm").innerHTML=MENU.map((m,i)=>`<div class="arow"><input class="nm" id="n_${i}" value="${esc(m.n)}"><input class="pr" id="p_${i}" type="number" min="0" value="${m.p}"><button class="sv" onclick="adminSave(${i})">Save</button><button class="dl" onclick="adminDel(${i})">Delete</button></div>`).join("")||'<p class="sm">No products yet.</p>'}
+async function adminSave(i){const n=$("n_"+i).value.trim(),p=parseInt($("p_"+i).value,10);
+  if(!n||isNaN(p)||p<0){alert("Enter a name and a valid price");return}
+  const l=MENU.map(x=>({...x}));l[i].n=n;l[i].p=p;if(await saveMenu(l))alert("Saved ✔")}
+async function adminDel(i){if(!confirm("Delete \""+MENU[i].n+"\"? Past orders stay in history."))return;
+  await saveMenu(MENU.filter((_,j)=>j!==i))}
+async function adminAdd(){const n=$("an").value.trim(),p=parseInt($("ap").value,10);
+  if(!n||isNaN(p)||p<0){alert("Enter a name and a valid price");return}
+  if(await saveMenu([...MENU.map(x=>({...x})),{id:"p"+Date.now().toString(36),n,p}])){$("an").value="";$("ap").value=""}}
+
+const fmtT=t=>new Date(t).toLocaleTimeString("en-IN",{hour:"2-digit",minute:"2-digit"});
+const dayKey=t=>new Date(t).toLocaleDateString("en-IN",{day:"2-digit",month:"short",year:"numeric"});
+const its=o=>Object.entries(o.items||{}).map(([k,v])=>typeof v==="number"?{n:(M[k]||{}).n||k,p:(M[k]||{}).p||0,q:v}:v);
+function render(){
+  const all=[...orders].sort((a,b)=>b.ts-a.ts);
+  $("e1").textContent=rs(all.reduce((s,o)=>s+o.total,0));$("e2").textContent=all.length;
+  const sold={};all.forEach(o=>its(o).forEach(x=>{const s=sold[x.n]||(sold[x.n]={q:0,r:0});s.q+=x.q;s.r+=x.q*x.p}));
+  $("sold").innerHTML=Object.entries(sold).map(([n,s])=>`<div class="row"><span>${esc(n)}</span><span>${s.q} sold = <b>${rs(s.r)}</b></span></div>`).join("")||'<p class="sm">No sales yet</p>';
+  const d={};all.forEach(o=>{const k=dayKey(o.ts);d[k]=(d[k]||0)+o.total});
+  $("days").innerHTML=Object.entries(d).map(([k,v])=>`<div class="row"><span>${k}</span><b>${rs(v)}</b></div>`).join("")||'<p class="sm">No sales yet</p>';
+  $("hist").innerHTML=all.map((o,i)=>`<div class="box ord"><div class="row" style="border:0"><b>Order #${all.length-i} · ${fmtT(o.ts)}</b><b style="color:var(--gold)">${rs(o.total)}</b></div><div class="sm">${its(o).map(x=>x.q+"× "+esc(x.n)).join(", ")}</div><div class="row" style="border:0"><span class="sm">${dayKey(o.ts)} · ${esc(o.by)}${o.edited?' · ✎ edited':''}</span>${actions(o)}</div></div>`).join("")||'<p class="sm" style="padding:16px">No orders yet. Orders you mark as served appear here.</p>';
+  renderAdmin()}
+function exportCsv(){
+  const rows=[["Date","Time","Items","Total","Staff"],...[...orders].sort((a,b)=>a.ts-b.ts).map(o=>[dayKey(o.ts),fmtT(o.ts),its(o).map(x=>x.q+"x "+x.n).join("; "),o.total,o.by])];
+  const csv=rows.map(r=>r.map(c=>'"'+String(c).replace(/"/g,'""')+'"').join(",")).join("\n");
+  (async()=>{try{const dl=await claude.use("downloads");if(dl){await dl.save({filename:"genz-stall-history.csv",data:csv});return}}catch(e){}
+    navigator.clipboard&&navigator.clipboard.writeText(csv);alert("CSV copied to clipboard — paste it into Excel or Google Sheets.")})()}
+
+async function start(){
+  $("login").classList.add("hide");$("app").classList.remove("hide");$("who").textContent=email;
+  $("n4").classList.toggle("hide",!isAdmin());
+  try{orders=JSON.parse(ls.get("genz_orders")||"[]")}catch(e){orders=[]}
+  try{const m=JSON.parse(ls.get("genz_menu")||"null");if(Array.isArray(m)&&m.length)MENU=m}catch(e){}
+  rebuildM();cartUI();render();$("sync").textContent="📱 this phone only";
+  try{
+    if(window.claude){db=await claude.use("db");
+      if(db){
+        db.collection("menu").onSnapshot(s=>{menuDbIds=s.docs.map(d=>d.id);
+          if(s.docs.length){MENU=s.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>(a.o||0)-(b.o||0))}else{MENU=DEFAULTS.map(x=>({...x}))}
+          rebuildM();cartUI();render()},()=>{});
+        db.collection("orders").onSnapshot(s=>{orders=s.docs.map(d=>({id:d.id,...d.data()}));$("sync").textContent="☁ synced with all staff";render()},
+          e=>{db=null;$("sync").textContent="📱 this phone only"})}}
+  }catch(e){db=null}
+}
+email=ls.get("genz_email");
+if(email)start();else $("login").classList.remove("hide");
+</script></body></html>
