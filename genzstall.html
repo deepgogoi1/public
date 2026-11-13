@@ -86,7 +86,7 @@ input{font:inherit}
     <hr style="border:0;border-top:1px solid #8883"><b>Add new product</b>
     <div class="arow" style="margin-top:8px"><input class="nm" id="an" placeholder="Product name"><input class="pr" id="ap" type="number" min="0" placeholder="₹ Price"><button class="sv" onclick="adminAdd()">+ Add</button></div></div></section>
 
-  <div class="foot">Developer <b>Deep Gogoi</b></div>
+  <div class="foot">Developer <b>Deep Gogoi 🇮🇳</b></div>
 </div>
 
 <div id="pay" class="modal hide"><div class="box" style="max-width:340px;width:100%;margin:0;text-align:center"><b>Collect payment</b><div style="font-size:34px;font-weight:800;color:var(--gold)" id="pamt"></div><div id="pq" style="background:#fff;padding:12px;border-radius:12px;display:inline-block;margin:8px 0"></div><div class="sm">Scan with any UPI app<br><span id="pid"></span> · <span id="pnm"></span></div><p class="sm">Check the Paytm soundbox or app before tapping "UPI paid".</p><div class="arow" style="justify-content:center"><button class="sv" onclick="finish('upi')">✔ UPI paid</button><button class="sv" style="background:#c98b1e" onclick="finish('cash')">✔ Cash paid</button></div><button class="btn clr" style="padding:8px 14px;font-size:14px" onclick="closePay()">Back</button></div></div>
@@ -95,7 +95,7 @@ input{font:inherit}
 <script>
 const ADMIN="deepgogoi217@gmail.com";
 const DEFAULTS=[
- {id:"cp",n:"Chicken Pakora (8 pcs)",p:100},{id:"ff",n:"French Fries",p:80},
+ {id:"cp",n:"Chicken Pakora (8 pcs)",p:100},{id:"ff",n:"French Fries",p:80},{id:"ta",n:"Tea",p:15},{id:"",n:"French Fries",p:80},
  {id:"vm",n:"Veg Maggie",p:30},{id:"chm",n:"Chicken Maggie",p:50},
  {id:"cm",n:"Cheese Maggie",p:60},{id:"gh",n:"Ghugni",p:20},
  {id:"cb",n:"Combo Special (Chicken + Cheese Maggie)",p:90},{id:"gc",n:"Grilled Chicken (8 pcs)",p:120}];
