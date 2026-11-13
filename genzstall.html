@@ -1,12 +1,12 @@
 <!DOCTYPE html>
 <html lang="en"><head><meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <title>GENZ Stall – Orders</title>
 <style>
 :root{--bg:#1f2227;--card:#2b2f36;--tx:#f4f1ea;--mut:#a9a49a;--gold:#d4af6a;--ok:#4caf7d;--bad:#e5645a;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
 @media (prefers-color-scheme:light){:root:not([data-theme="dark"]){--bg:#f6f2e9;--card:#fff;--tx:#1d1d1d;--mut:#6f6a5f;--gold:#a67c1f}}
 :root[data-theme="dark"]{--bg:#1f2227;--card:#2b2f36;--tx:#f4f1ea;--mut:#a9a49a;--gold:#d4af6a}
-*{box-sizing:border-box}html,body{margin:0}body{background:var(--bg);color:var(--tx);font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;padding-bottom:110px}
+*{box-sizing:border-box}html,body{margin:0;touch-action:manipulation}body{background:var(--bg);color:var(--tx);font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;padding-bottom:110px}
 header{display:flex;justify-content:space-between;align-items:center;padding:14px 16px;border-bottom:1px solid var(--gold)}
 h1{margin:0;font-size:20px;letter-spacing:1px}h1 span{color:var(--gold)}
 .sm{font-size:12px;color:var(--mut)}
@@ -115,7 +115,10 @@ function doLogin(){const v=$("em").value.trim().toLowerCase();
   if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(v)){$("lerr").textContent="Please enter a valid email";return}
   ls.set("genz_email",v);email=v;start()}
 function logout(){ls.set("genz_email","");location.reload()}
-function tab(n){[1,2,3,4].forEach(i=>{$("s"+i).classList.toggle("hide",i!=n);$("n"+i).classList.toggle("on",i==n)});render()}
+const TABS=["order","earnings","history","admin"];
+function showTab(n){if(n==4&&!isAdmin())n=1;[1,2,3,4].forEach(i=>{$("s"+i).classList.toggle("hide",i!=n);$("n"+i).classList.toggle("on",i==n)});render()}
+function tab(n){if(location.hash==="#"+TABS[n-1])showTab(n);else location.hash=TABS[n-1]}
+addEventListener("hashchange",()=>{const i=TABS.indexOf(location.hash.slice(1));showTab(i<0?1:i+1)});
 
 function renderMenu(){$("menu").innerHTML=MENU.map(m=>`<div class="item" onclick="add('${m.id}')" oncontextmenu="return false">${cart[m.id]?`<span class="badge">${cart[m.id]}</span>`:""}<b>${esc(m.n)}</b><span class="p">${rs(m.p)}</span>${cart[m.id]?`<button class="btn clr" style="padding:4px;font-size:13px" onclick="event.stopPropagation();sub('${m.id}')">− remove one</button>`:""}</div>`).join("")}
 function add(id){cart[id]=(cart[id]||0)+1;cartUI()}
