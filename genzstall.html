@@ -61,7 +61,7 @@ input{font:inherit}
   <input id="em" type="email" placeholder="Enter your email" autocomplete="email">
   <button class="btn done" style="width:100%" onclick="doLogin()">Continue</button>
   <p id="lerr" class="sm" style="color:var(--bad)"></p>
-  <p class="foot">Developer <b>Deep Gogoi</b></p>
+  <p class="foot">Developer <b>Deep Gogoi 🇮🇳</b></p>
 </div>
 
 <div id="app" class="hide">
@@ -74,7 +74,7 @@ input{font:inherit}
       <button class="btn done" id="bd" onclick="done()" disabled>✔ Served</button></div></section>
 
   <section id="s2" class="hide">
-    <div class="stats"><div class="stat"><span class="sm">Total earnings</span><b id="e1">₹0</b></div><div class="stat"><span class="sm">Orders served</span><b id="e2">0</b></div></div>
+    <div class="stats"><div class="stat"><span class="sm">Total earnings</span><b id="e1">₹0</b></div><div class="stat"><span class="sm">Orders served</span><b id="e2">0</b></div><div class="stat"><span class="sm">💵 Cash</span><b id="e3">₹0</b></div><div class="stat"><span class="sm">📲 UPI (Paytm)</span><b id="e4">₹0</b></div></div>
     <div class="box"><b>Items sold</b><div id="sold"></div></div>
     <div class="box"><b>Earnings by day</b><div id="days"></div></div>
     <div class="box"><button class="btn clr" onclick="exportCsv()">⬇ Download history (CSV)</button></div>
@@ -82,14 +82,16 @@ input{font:inherit}
 
   <section id="s3" class="hide"><div id="hist"></div></section>
 
-  <section id="s4" class="hide"><div class="box"><b>Staff requests (edit &amp; delete)</b><div id="req" style="margin-top:6px"></div></div><div class="box"><b>Manage products &amp; prices</b><p class="sm">Changes apply to new orders. Past orders keep the price they were sold at.</p><div id="adm"></div>
+  <section id="s4" class="hide"><div class="box"><b>Staff requests (edit &amp; delete)</b><div id="req" style="margin-top:6px"></div></div><div class="box"><b>Payment (Paytm UPI QR)</b><p class="sm">The QR shown to customers uses this UPI ID.</p><div class="arow"><input class="nm" id="upiid" placeholder="UPI ID"><input class="nm" id="upinm" placeholder="Account name"><button class="sv" onclick="saveUpi()">Save</button></div></div><div class="box"><b>Manage products &amp; prices</b><p class="sm">Changes apply to new orders. Past orders keep the price they were sold at.</p><div id="adm"></div>
     <hr style="border:0;border-top:1px solid #8883"><b>Add new product</b>
     <div class="arow" style="margin-top:8px"><input class="nm" id="an" placeholder="Product name"><input class="pr" id="ap" type="number" min="0" placeholder="₹ Price"><button class="sv" onclick="adminAdd()">+ Add</button></div></div></section>
 
   <div class="foot">Developer <b>Deep Gogoi</b></div>
 </div>
 
+<div id="pay" class="modal hide"><div class="box" style="max-width:340px;width:100%;margin:0;text-align:center"><b>Collect payment</b><div style="font-size:34px;font-weight:800;color:var(--gold)" id="pamt"></div><div id="pq" style="background:#fff;padding:12px;border-radius:12px;display:inline-block;margin:8px 0"></div><div class="sm">Scan with any UPI app<br><span id="pid"></span> · <span id="pnm"></span></div><p class="sm">Check the Paytm soundbox or app before tapping "UPI paid".</p><div class="arow" style="justify-content:center"><button class="sv" onclick="finish('upi')">✔ UPI paid</button><button class="sv" style="background:#c98b1e" onclick="finish('cash')">✔ Cash paid</button></div><button class="btn clr" style="padding:8px 14px;font-size:14px" onclick="closePay()">Back</button></div></div>
 <div id="ed" class="modal hide"><div class="box" style="max-width:420px;width:100%;margin:0;max-height:90vh;overflow:auto"><b>Edit order</b><div id="edb" style="margin-top:10px"></div><div class="arow" style="margin-top:12px"><button class="sv" id="edsv" onclick="edSave()">Save changes</button><button class="clr btn" style="padding:9px 12px;font-size:14px" onclick="edClose()">Cancel</button></div></div></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <script>
 const ADMIN="deepgogoi217@gmail.com";
 const DEFAULTS=[
@@ -97,6 +99,7 @@ const DEFAULTS=[
  {id:"vm",n:"Veg Maggie",p:30},{id:"chm",n:"Chicken Maggie",p:50},
  {id:"cm",n:"Cheese Maggie",p:60},{id:"gh",n:"Ghugni",p:20},
  {id:"cb",n:"Combo Special (Chicken + Cheese Maggie)",p:90},{id:"gc",n:"Grilled Chicken (8 pcs)",p:120}];
+let UPI={id:"paytm.s4qa4bn@pty",name:"Deepjyoti Gogoi"};
 let MENU=DEFAULTS.map(x=>({...x})),M={},cart={},orders=[],email=null,db=null,menuDbIds=[];
 const $=id=>document.getElementById(id), rs=n=>"₹"+Number(n).toLocaleString("en-IN");
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
@@ -123,9 +126,16 @@ function cartUI(){const n=Object.values(cart).reduce((a,b)=>a+b,0);
   $("ct").textContent=rs(total(cart));$("cn").textContent=n?n+" item"+(n>1?"s":""):"Tap items to add";
   $("bd").disabled=$("bc").disabled=!n;renderMenu()}
 
-async function done(){
+const upiLink=t=>`upi://pay?pa=${UPI.id}&pn=${encodeURIComponent(UPI.name)}&am=${t}&cu=INR&tn=${encodeURIComponent("GENZ Stall")}`;
+function done(){const t=total(cart);if(!t)return;
+  $("pamt").textContent=rs(t);$("pid").textContent=UPI.id;$("pnm").textContent=UPI.name;$("pq").innerHTML="";
+  try{new QRCode($("pq"),{text:upiLink(t),width:210,height:210,colorDark:"#000000",colorLight:"#ffffff",correctLevel:QRCode.CorrectLevel.M})}catch(e){$("pq").textContent="QR not available. Collect cash."}
+  $("pay").classList.remove("hide")}
+function closePay(){$("pay").classList.add("hide")}
+async function finish(method){
+  closePay();
   const items={};Object.entries(cart).forEach(([k,q])=>items[k]={n:M[k].n,p:M[k].p,q});
-  const o={items,total:total(cart),by:email,ts:Date.now()};
+  const o={items,total:total(cart),by:email,ts:Date.now(),pay:method};
   const id="o"+o.ts+Math.random().toString(36).slice(2,6);
   clearCart();
   if(db){try{await db.collection("orders").doc(id).set(o);return}catch(e){$("sync").textContent="⚠ saved on this phone only"}}
@@ -149,6 +159,12 @@ function actions(o){
   if(o.delReq)return '<span class="tag">⏳ Delete requested, waiting for admin</span>';
   if(o.editReq)return '<span class="tag">⏳ Edit requested, waiting for admin</span>';
   return `<span><button class="x" style="color:var(--gold)" onclick="editOrder('${o.id}')">Request edit</button> <button class="x" onclick="reqDel('${o.id}')">Request delete</button></span>`}
+function fillUpi(){$("upiid").value=UPI.id;$("upinm").value=UPI.name}
+async function saveUpi(){const id=$("upiid").value.trim(),nm=$("upinm").value.trim();
+  if(!/^[\w.\-]+@[\w.\-]+$/.test(id)||!nm){alert("Enter a valid UPI ID and account name");return}
+  const v={id,name:nm};
+  if(db){try{await db.collection("settings").doc("pay").set(v);alert("Saved ✔");return}catch(e){alert("Could not save shared settings. Open the app signed in to the owner's Claude account.");return}}
+  UPI=v;ls.set("genz_upi",JSON.stringify(v));alert("Saved ✔")}
 let ed=null;
 function editOrder(id){const o=orders.find(x=>x.id===id);if(!o)return;ed={id,items:its(o).map(x=>({k:x.k||x.n,...x}))};$("edsv").textContent=isAdmin()?"Save changes":"Send edit request";drawEd();$("ed").classList.remove("hide")}
 function drawEd(){$("edb").innerHTML=ed.items.map((x,i)=>`<div class="arow"><span style="flex:1">${esc(x.n)} <span class="sm">${rs(x.p)} each</span></span><input class="pr" type="number" min="0" value="${x.q}" oninput="ed.items[${i}].q=Math.max(0,parseInt(this.value)||0);edTot()"></div>`).join("")+`<div class="arow"><select id="eadd" class="nm" style="padding:10px;border-radius:10px;background:var(--bg);color:var(--tx);border:1px solid var(--gold)">${MENU.map(m=>`<option value="${m.id}">${esc(m.n)} – ${rs(m.p)}</option>`).join("")}</select><button class="sv" onclick="edAdd()">+ Add</button></div><div class="row"><b>New total</b><b id="edt" style="color:var(--gold)"></b></div><p class="sm">Set a quantity to 0 to remove that item.</p>`;edTot()}
@@ -188,15 +204,15 @@ const dayKey=t=>new Date(t).toLocaleDateString("en-IN",{day:"2-digit",month:"sho
 const its=o=>Object.entries(o.items||{}).map(([k,v])=>typeof v==="number"?{n:(M[k]||{}).n||k,p:(M[k]||{}).p||0,q:v}:v);
 function render(){
   const all=[...orders].sort((a,b)=>b.ts-a.ts);
-  $("e1").textContent=rs(all.reduce((s,o)=>s+o.total,0));$("e2").textContent=all.length;
+  $("e1").textContent=rs(all.reduce((s,o)=>s+o.total,0));$("e2").textContent=all.length;{const u=all.filter(o=>o.pay==="upi").reduce((s,o)=>s+o.total,0);$("e4").textContent=rs(u);$("e3").textContent=rs(all.reduce((s,o)=>s+o.total,0)-u)}
   const sold={};all.forEach(o=>its(o).forEach(x=>{const s=sold[x.n]||(sold[x.n]={q:0,r:0});s.q+=x.q;s.r+=x.q*x.p}));
   $("sold").innerHTML=Object.entries(sold).map(([n,s])=>`<div class="row"><span>${esc(n)}</span><span>${s.q} sold = <b>${rs(s.r)}</b></span></div>`).join("")||'<p class="sm">No sales yet</p>';
   const d={};all.forEach(o=>{const k=dayKey(o.ts);d[k]=(d[k]||0)+o.total});
   $("days").innerHTML=Object.entries(d).map(([k,v])=>`<div class="row"><span>${k}</span><b>${rs(v)}</b></div>`).join("")||'<p class="sm">No sales yet</p>';
-  $("hist").innerHTML=all.map((o,i)=>`<div class="box ord"><div class="row" style="border:0"><b>Order #${all.length-i} · ${fmtT(o.ts)}</b><b style="color:var(--gold)">${rs(o.total)}</b></div><div class="sm">${its(o).map(x=>x.q+"× "+esc(x.n)).join(", ")}</div><div class="row" style="border:0"><span class="sm">${dayKey(o.ts)} · ${esc(o.by)}${o.edited?' · ✎ edited':''}</span>${actions(o)}</div></div>`).join("")||'<p class="sm" style="padding:16px">No orders yet. Orders you mark as served appear here.</p>';
+  $("hist").innerHTML=all.map((o,i)=>`<div class="box ord"><div class="row" style="border:0"><b>Order #${all.length-i} · ${fmtT(o.ts)}</b><b style="color:var(--gold)">${rs(o.total)}</b></div><div class="sm">${its(o).map(x=>x.q+"× "+esc(x.n)).join(", ")}</div><div class="row" style="border:0"><span class="sm">${dayKey(o.ts)} · ${esc(o.by)}${o.edited?' · ✎ edited':''}${o.pay?' · '+(o.pay==="upi"?'UPI':'Cash'):''}</span>${actions(o)}</div></div>`).join("")||'<p class="sm" style="padding:16px">No orders yet. Orders you mark as served appear here.</p>';
   renderAdmin()}
 function exportCsv(){
-  const rows=[["Date","Time","Items","Total","Staff"],...[...orders].sort((a,b)=>a.ts-b.ts).map(o=>[dayKey(o.ts),fmtT(o.ts),its(o).map(x=>x.q+"x "+x.n).join("; "),o.total,o.by])];
+  const rows=[["Date","Time","Items","Total","Staff","Payment"],...[...orders].sort((a,b)=>a.ts-b.ts).map(o=>[dayKey(o.ts),fmtT(o.ts),its(o).map(x=>x.q+"x "+x.n).join("; "),o.total,o.by,o.pay==="upi"?"UPI":"Cash"])];
   const csv=rows.map(r=>r.map(c=>'"'+String(c).replace(/"/g,'""')+'"').join(",")).join("\n");
   (async()=>{try{const dl=await claude.use("downloads");if(dl){await dl.save({filename:"genz-stall-history.csv",data:csv});return}}catch(e){}
     navigator.clipboard&&navigator.clipboard.writeText(csv);alert("CSV copied to clipboard — paste it into Excel or Google Sheets.")})()}
@@ -206,13 +222,15 @@ async function start(){
   $("n4").classList.toggle("hide",!isAdmin());
   try{orders=JSON.parse(ls.get("genz_orders")||"[]")}catch(e){orders=[]}
   try{const m=JSON.parse(ls.get("genz_menu")||"null");if(Array.isArray(m)&&m.length)MENU=m}catch(e){}
-  rebuildM();cartUI();render();$("sync").textContent="📱 this phone only";
+  try{const u=JSON.parse(ls.get("genz_upi")||"null");if(u&&u.id)UPI=u}catch(e){}
+  rebuildM();cartUI();fillUpi();render();$("sync").textContent="📱 this phone only";
   try{
     if(window.claude){db=await claude.use("db");
       if(db){
         db.collection("menu").onSnapshot(s=>{menuDbIds=s.docs.map(d=>d.id);
           if(s.docs.length){MENU=s.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>(a.o||0)-(b.o||0))}else{MENU=DEFAULTS.map(x=>({...x}))}
           rebuildM();cartUI();render()},()=>{});
+        db.collection("settings").doc("pay").onSnapshot(d=>{const v=d.exists&&d.data();if(v&&v.id){UPI={id:v.id,name:v.name||UPI.name};fillUpi()}},()=>{});
         db.collection("orders").onSnapshot(s=>{orders=s.docs.map(d=>({id:d.id,...d.data()}));$("sync").textContent="☁ synced with all staff";render()},
           e=>{db=null;$("sync").textContent="📱 this phone only"})}}
   }catch(e){db=null}
